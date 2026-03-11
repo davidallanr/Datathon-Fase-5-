@@ -1,40 +1,66 @@
-# Datathon-Fase-5-
-Análise de dados e avaliação preditiva da Associação Passos Mágicos nos anos de 2022, 2023 e 2024.
+# 🪄 Análise de Dados e Modelo Preditivo: Associação Passos Mágicos (2022-2024)
 
-Introdução
+## 📌 Sobre a Associação
 
-A Associação Passos Mágicos tem uma trajetória de 32 anos de atuação,
-trabalhando na transformação da vida de crianças e jovens de baixa renda, os
-levando a melhores oportunidades de vida.
+A **Associação Passos Mágicos** atua há 32 anos transformando a trajetória de crianças e jovens de baixa renda, proporcionando melhores oportunidades de vida por meio da educação e apoio psicossocial.
 
-Este trabalho propõe:
+## 🎯 Objetivos do Projeto
 
-1 - Limpeza e análise de dados dos anos de 2022 a 2024;
+Este trabalho visa extrair inteligência dos dados da associação para otimizar o acompanhamento dos alunos, focando em quatro pilares:
 
-2 - Responder dores do negócio relatadas no documento de apoio;
+1. **ETL & Análise Exploratória:** Limpeza e tratamento dos dados referentes aos anos de 2022, 2023 e 2024.
+2. **Inteligência de Negócio:** Responder às dores e dúvidas estratégicas relatadas nos documentos de apoio da instituição.
+3. **Ciência de Dados:** Desenvolvimento de um **modelo preditivo** para identificar a probabilidade de um aluno entrar em risco de defasagem escolar.
+4. **Deployment:** Criação de uma aplicação interativa em **Streamlit** para consulta do modelo e visualização dos indicadores.
 
-3 - modelo preditivo que mostre uma probabilidade do aluno ou aluna entrar em risco de defasagem;
+---
 
-4 - aplicação no Streamlit com o modelo preditivo gerado.
+## 🛠️ Tratamento de Dados (ETL)
+
+A base original (PEDE) foi desmembrada em três conjuntos anuais (`2022.xlsx`, `2023.xlsx` e `2024.xlsx`) para garantir a integridade histórica. Aplicamos as seguintes padronizações:
+
+* **Gênero:** Unificação para o padrão *Feminino/Masculino*.
+* **Fase Escolar:** Padronização de formatos heterogêneos para a nomenclatura oficial (*ALFA / FASE 1* até *FASE 8*).
+* **Correção de Tipografia:** Ajustes em nomes de pedras (ex: *Agata* → *Ágata*) e limpeza de registros inconsistentes.
+* **Renomeação de Colunas:** Simplificação técnica para facilitar a codificação (ex: *Matem* → `Mat`, *Portug* → `Por`, *Defas* → `Defasagem`).
+* **Categorização Institucional:** Consolidação dos tipos de escola em: *Pública, Privada, Privada (Bolsa), Privada (Empresa)* e *Concluído*.
+* **Conversão de Tipos:** Transformação do INDE 2024 de texto para formato numérico (`float`) para cálculos estatísticos.
+
+---
+
+## 🚀 Tecnologias Utilizadas
+
+* **Linguagem:** Python
+* **Manipulação de Dados:** Pandas / NumPy
+* **Visualização:** Plotly / Matplotlib / Seaborn
+* **Machine Learning:** Scikit-Learn
+* **Interface Web:** Streamlit
+
+---
+
+## 📂 Como Executar o Projeto
+
+1. Clone este repositório:
+```bash
+git clone https://github.com/seu-usuario/passos-magicos-analise.git
+
+```
 
 
-Limpeza do dataset
+2. Instale as dependências:
+```bash
+pip install -r requirements.txt
 
-Para fins de melhor organização do trabalho,  a base de dados PEDE foi desmembrada em 3 planilhas, uma de 2022 (2022.xlsx), uma de 2023 (2023.xlsx) e outra de 2024 (2024.xlsx), após esse processo, aplicamos uma limpeza para padronização, conforme abaixo.
-
-
-Limpezas aplicadas:
-
-Gênero padronizado: Menina/Menino → Feminino/Masculino em todos os anos
+```
 
 
-Fase unificada: números (2022), textos variados (2023) e turmas como "3B" (2024) → formato único ALFA / FASE 1 ... FASE 8
+3. Execute o dashboard:
+```bash
+streamlit run app.py
 
-Pedra corrigida: Agata → Ágata e INCLUIR → nulo
+```
 
-Colunas renomeadas: Matem → Mat, Portug → Por, Inglês → Ing, Defas → Defasagem, etc.
 
-Instituição simplificada em categorias consistentes: Pública, Privada, Privada (Bolsa), Privada (Empresa), Concluído
 
-INDE 2024 convertido de texto para numérico
+
 
