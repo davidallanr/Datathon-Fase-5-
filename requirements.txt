@@ -1,0 +1,15 @@
+# Manipulação de Dados
+pandas
+numpy
+openpyxl
+
+# Visualização de Dados
+matplotlib
+seaborn
+plotly
+
+# Machine Learning
+scikit-learn
+
+# Interface Web
+streamlit
