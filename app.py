@@ -9,56 +9,29 @@ import plotly.express as px
 st.set_page_config(page_title="Risco Educacional", layout="centered")
 
 st.title("📊 Previsão de Risco Educacional")
-st.write("Modelo baseado nos indicadores educacionais dos alunos.")
+st.write("Modelo baseado nos indicadores reais da base Passos Mágicos")
 
 # =========================
 # CARREGAR DADOS
 # =========================
 df = pd.read_excel("dados_limpos base de dados.xlsx")
 
-# limpar nomes das colunas
-df.columns = df.columns.str.strip().str.upper()
+# limpar colunas
+df.columns = df.columns.str.strip()
 
 # =========================
-# IDENTIFICAR COLUNAS AUTOMATICAMENTE
+# SELECIONAR COLUNAS CORRETAS (DO SEU DATASET)
 # =========================
-def encontrar_coluna(nome):
-    for col in df.columns:
-        if nome in col:
-            return col
-    return None
+colunas = ["IDA", "IEG", "IPS", "IPV", "INDE"]
 
-col_ida = encontrar_coluna("IDA")
-col_ieg = encontrar_coluna("IEG")
-col_ips = encontrar_coluna("IPS")
-col_ipp = encontrar_coluna("IPP")
-col_ipv = encontrar_coluna("IPV")
-col_inde = encontrar_coluna("INDE")
-
-colunas_reais = [col_ida, col_ieg, col_ips, col_ipp, col_ipv, col_inde]
-
-# validar
-if None in colunas_reais:
-    st.error("Erro: Não foi possível identificar todas as colunas automaticamente.")
-    st.write("Colunas disponíveis no dataset:")
-    st.write(df.columns)
-    st.stop()
-
-# criar dataframe padronizado
-df_modelo = df[colunas_reais].copy()
-df_modelo.columns = ["IDA", "IEG", "IPS", "IPP", "IPV", "INDE"]
+df_modelo = df[colunas].dropna()
 
 # =========================
-# TRATAR DADOS
-# =========================
-df_modelo = df_modelo.dropna()
-
-# =========================
-# TARGET (RISCO)
+# CRIAR TARGET
 # =========================
 df_modelo["RISCO"] = (df_modelo["INDE"] < 5).astype(int)
 
-X = df_modelo[["IDA", "IEG", "IPS", "IPP", "IPV", "INDE"]]
+X = df_modelo[["IDA", "IEG", "IPS", "IPV", "INDE"]]
 y = df_modelo["RISCO"]
 
 # =========================
@@ -74,21 +47,20 @@ st.subheader("Insira os indicadores do aluno")
 
 ida = st.slider("IDA - Desempenho Acadêmico", 0.0, 10.0, 5.0)
 ieg = st.slider("IEG - Engajamento", 0.0, 10.0, 5.0)
-ips = st.slider("IPS - Aspectos Psicossociais", 0.0, 10.0, 5.0)
-ipp = st.slider("IPP - Indicador Psicopedagógico", 0.0, 10.0, 5.0)
+ips = st.slider("IPS - Psicossocial", 0.0, 10.0, 5.0)
 ipv = st.slider("IPV - Ponto de Virada", 0.0, 10.0, 5.0)
 inde = st.slider("INDE - Índice Educacional", 0.0, 10.0, 5.0)
 
 # =========================
 # PREVISÃO
 # =========================
-if st.button("🔍 Prever risco educacional"):
-    entrada = [[ida, ieg, ips, ipp, ipv, inde]]
+if st.button("🔍 Prever risco"):
+    entrada = [[ida, ieg, ips, ipv, inde]]
 
     pred = modelo.predict(entrada)[0]
     prob = modelo.predict_proba(entrada)[0][1]
 
-    st.subheader("Resultado da previsão")
+    st.subheader("Resultado")
 
     st.write(f"Probabilidade de risco: **{prob:.2%}**")
 
@@ -98,7 +70,7 @@ if st.button("🔍 Prever risco educacional"):
         st.success("✅ Aluno com desenvolvimento adequado")
 
     # =========================
-    # IMPORTÂNCIA DAS FEATURES
+    # IMPORTÂNCIA
     # =========================
     importancias = pd.Series(modelo.feature_importances_, index=X.columns)
 
@@ -111,9 +83,9 @@ if st.button("🔍 Prever risco educacional"):
     st.plotly_chart(fig)
 
 # =========================
-# DASHBOARD SIMPLES
+# DASHBOARD
 # =========================
-st.subheader("📈 Visão geral dos dados")
+st.subheader("📈 Visão geral")
 
 col1, col2 = st.columns(2)
 
