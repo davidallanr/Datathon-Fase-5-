@@ -1,34 +1,28 @@
 import streamlit as st
 import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
-import plotly.express as px
 
-# =========================
-# CONFIG
-# =========================
-st.set_page_config(page_title="Risco Educacional", layout="centered")
+st.set_page_config(page_title="Risco Educacional", layout="wide")
 
 st.title("📊 Previsão de Risco Educacional")
 st.write("Modelo baseado nos indicadores reais da base Passos Mágicos")
 
 # =========================
-# CARREGAR DADOS
+# CARREGAR BASE
 # =========================
-import os
-
-arquivos = os.listdir()
-
-st.write("Arquivos disponíveis:", arquivos)  # debug
-
-arquivo = [f for f in arquivos if f.endswith(".xlsx")][0]
-
-df = pd.read_excel(arquivo)
+try:
+    df = pd.read_excel("dados_limpos base de dados.xlsx")
+except:
+    st.error("Erro ao carregar a base de dados.")
+    st.stop()
 
 # =========================
-# AJUSTAR COLUNAS AUTOMATICAMENTE
+# LIMPAR NOMES DAS COLUNAS
 # =========================
 df.columns = df.columns.str.strip().str.upper()
 
+# =========================
+# ENCONTRAR COLUNAS AUTOMATICAMENTE
+# =========================
 def find_col(keyword):
     for col in df.columns:
         if keyword in col:
@@ -39,93 +33,77 @@ col_ida = find_col("IDA")
 col_ieg = find_col("IEG")
 col_ips = find_col("IPS")
 col_ipv = find_col("IPV")
-col_inde = find_col("INDE")
 
-# DEBUG (ESSENCIAL AGORA)
-st.write("Colunas detectadas:")
+# DEBUG (pode remover depois)
+st.subheader("🔍 Colunas detectadas")
 st.write({
     "IDA": col_ida,
     "IEG": col_ieg,
     "IPS": col_ips,
-    "IPV": col_ipv,
-    "INDE": col_inde
+    "IPV": col_ipv
 })
 
 # validação
-if None in [col_ida, col_ieg, col_ips, col_ipv, col_inde]:
-    st.error("Erro: alguma coluna não foi encontrada.")
-    st.write("Colunas disponíveis no dataset:")
-    st.write(df.columns)
+if None in [col_ida, col_ieg, col_ips, col_ipv]:
+    st.error("Erro: não foi possível encontrar todas as colunas necessárias.")
+    st.write("Colunas disponíveis:", df.columns)
     st.stop()
 
-# montar dataset
-df_modelo = df[[col_ida, col_ieg, col_ips, col_ipv, col_inde]].copy()
-df_modelo.columns = ["IDA", "IEG", "IPS", "IPV", "INDE"]
-
+# =========================
+# PREPARAR DADOS
+# =========================
+df_modelo = df[[col_ida, col_ieg, col_ips, col_ipv]].copy()
+df_modelo.columns = ["IDA", "IEG", "IPS", "IPV"]
 df_modelo = df_modelo.dropna()
 
-# =========================
-# CRIAR TARGET
-# =========================
-df_modelo["RISCO"] = (df_modelo["INDE"] < 5).astype(int)
+# NORMALIZAR
+df_norm = (df_modelo - df_modelo.min()) / (df_modelo.max() - df_modelo.min())
 
-X = df_modelo[["IDA", "IEG", "IPS", "IPV", "INDE"]]
-y = df_modelo["RISCO"]
+# CRIAR SCORE DE RISCO
+df_modelo["RISCO"] = 1 - df_norm.mean(axis=1)
 
 # =========================
-# TREINAR MODELO
-# =========================
-modelo = RandomForestClassifier(random_state=42)
-modelo.fit(X, y)
-
-# =========================
-# INPUT USUÁRIO
+# INTERFACE
 # =========================
 st.subheader("Insira os indicadores do aluno")
 
 ida = st.slider("IDA - Desempenho Acadêmico", 0.0, 10.0, 5.0)
 ieg = st.slider("IEG - Engajamento", 0.0, 10.0, 5.0)
-ips = st.slider("IPS - Psicossocial", 0.0, 10.0, 5.0)
+ips = st.slider("IPS - Aspectos Psicossociais", 0.0, 10.0, 5.0)
 ipv = st.slider("IPV - Ponto de Virada", 0.0, 10.0, 5.0)
-inde = st.slider("INDE - Índice Educacional", 0.0, 10.0, 5.0)
 
 # =========================
-# PREVISÃO
+# PREDIÇÃO
 # =========================
-if st.button("🔍 Prever risco"):
-    entrada = [[ida, ieg, ips, ipv, inde]]
+if st.button("Prever risco educacional"):
 
-    pred = modelo.predict(entrada)[0]
-    prob = modelo.predict_proba(entrada)[0][1]
+    entrada = pd.DataFrame([{
+        "IDA": ida,
+        "IEG": ieg,
+        "IPS": ips,
+        "IPV": ipv
+    }])
 
-    st.subheader("Resultado")
-
-    st.write(f"Probabilidade de risco: **{prob:.2%}**")
-
-    if pred == 1:
-        st.error("⚠️ Aluno em risco educacional")
-    else:
-        st.success("✅ Aluno com desenvolvimento adequado")
-
-    # =========================
-    # IMPORTÂNCIA
-    # =========================
-    importancias = pd.Series(modelo.feature_importances_, index=X.columns)
-
-    fig = px.bar(
-        x=importancias.index,
-        y=importancias.values,
-        title="Importância dos Indicadores"
+    entrada_norm = (entrada - df_modelo[["IDA","IEG","IPS","IPV"]].min()) / (
+        df_modelo[["IDA","IEG","IPS","IPV"]].max() - df_modelo[["IDA","IEG","IPS","IPV"]].min()
     )
 
-    st.plotly_chart(fig)
+    risco = 1 - entrada_norm.mean(axis=1)[0]
+
+    st.subheader("Resultado da previsão")
+    st.write(f"Probabilidade de risco educacional: {risco*100:.2f}%")
+
+    # barra de progresso
+    st.progress(float(risco))
+
+    if risco > 0.5:
+        st.error("⚠️ Aluno em risco educacional")
+    else:
+        st.success("✅ Aluno com desenvolvimento educacional adequado")
 
 # =========================
-# DASHBOARD
+# VISUAL EXTRA (BONUS)
 # =========================
-st.subheader("📈 Visão geral")
+st.subheader("📊 Distribuição de risco na base")
 
-col1, col2 = st.columns(2)
-
-col1.metric("Total de alunos", len(df_modelo))
-col2.metric("Alunos em risco", int(df_modelo["RISCO"].sum()))
+st.bar_chart(df_modelo["RISCO"])
