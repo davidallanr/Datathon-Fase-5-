@@ -1,137 +1,88 @@
 import streamlit as st
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
+import plotly.express as px
 
-# carregar dados
+# =========================
+# CONFIG
+# =========================
+st.set_page_config(page_title="Risco Educacional", layout="centered")
+
+st.title("📊 Previsão de Risco Educacional")
+st.write("Modelo baseado nos indicadores educacionais dos alunos.")
+
+# =========================
+# CARREGAR DADOS
+# =========================
 df = pd.read_excel("dados_limpos base de dados.xlsx")
 
-# Features (ajuste se necessário)
-X = df[["IDA_2022", "IEG_2022", "IPS_2022", "IPP_2022", "IPV_2022", "INDE_2022"]]
+# limpar nomes das colunas (muito importante)
+df.columns = df.columns.str.strip()
 
-# Criar variável alvo (exemplo)
-y = (df["INDE_2022"] < 5).astype(int)
+# debug (pode apagar depois)
+# st.write(df.columns)
 
-# Treinar modelo
-modelo = RandomForestClassifier()
+# =========================
+# DEFINIR COLUNAS (AJUSTADO)
+# =========================
+colunas = ["IDA", "IEG", "IPS", "IPP", "IPV", "INDE"]
+
+# garantir que existem
+df = df[colunas]
+
+# =========================
+# CRIAR TARGET (RISCO)
+# =========================
+df["RISCO"] = (df["INDE"] < 5).astype(int)
+
+X = df[colunas]
+y = df["RISCO"]
+
+# =========================
+# TREINAR MODELO
+# =========================
+modelo = RandomForestClassifier(random_state=42)
 modelo.fit(X, y)
 
-# Inputs do usuário
-st.title("Previsão de Risco Educacional")
+# =========================
+# INPUT USUÁRIO
+# =========================
+st.subheader("Insira os indicadores do aluno")
 
-ida = st.slider("IDA", 0.0, 10.0, 5.0)
-ieg = st.slider("IEG", 0.0, 10.0, 5.0)
-ips = st.slider("IPS", 0.0, 10.0, 5.0)
-ipp = st.slider("IPP", 0.0, 10.0, 5.0)
-ipv = st.slider("IPV", 0.0, 10.0, 5.0)
-inde = st.slider("INDE", 0.0, 10.0, 5.0)
+ida = st.slider("IDA - Desempenho Acadêmico", 0.0, 10.0, 5.0)
+ieg = st.slider("IEG - Engajamento", 0.0, 10.0, 5.0)
+ips = st.slider("IPS - Aspectos Psicossociais", 0.0, 10.0, 5.0)
+ipp = st.slider("IPP - Indicador Psicopedagógico", 0.0, 10.0, 5.0)
+ipv = st.slider("IPV - Ponto de Virada", 0.0, 10.0, 5.0)
+inde = st.slider("INDE - Índice Educacional", 0.0, 10.0, 5.0)
 
-# Previsão
-if st.button("Prever risco"):
+# =========================
+# PREVISÃO
+# =========================
+if st.button("🔍 Prever risco educacional"):
     entrada = [[ida, ieg, ips, ipp, ipv, inde]]
+    
     pred = modelo.predict(entrada)[0]
+    prob = modelo.predict_proba(entrada)[0][1]
+
+    st.subheader("Resultado da previsão")
+
+    st.write(f"Probabilidade de risco: **{prob:.2%}**")
 
     if pred == 1:
-        st.error("Aluno em risco educacional")
+        st.error("⚠️ Aluno em risco educacional")
     else:
-        st.success("Aluno com desenvolvimento adequado")
+        st.success("✅ Aluno com desenvolvimento adequado")
 
-st.set_page_config(page_title="Datathon Passos Mágicos", layout="wide")
+    # =========================
+    # IMPORTÂNCIA DAS FEATURES
+    # =========================
+    importancias = pd.Series(modelo.feature_importances_, index=colunas)
 
-st.title("📊 Datathon Passos Mágicos")
-st.subheader("Análise e Previsão de Risco Educacional")
-
-# menu lateral
-pagina = st.sidebar.selectbox(
-    "Escolha uma página",
-    ["Dashboard", "Previsão de Risco", "Análise do Modelo"]
-)
-
-# --------------------------------------------------
-# DASHBOARD
-# --------------------------------------------------
-
-if pagina == "Dashboard":
-
-    st.header("Visão geral dos dados")
-
-    col1, col2 = st.columns(2)
-
-    col1.metric("Total de alunos", len(df))
-
-    if "risco" in df.columns:
-        col2.metric("Alunos em risco", df["risco"].sum())
-
-    st.subheader("Distribuição do desempenho")
-
-    df["IDA_2022"].hist(ax=ax)
-
-# --------------------------------------------------
-# PREVISÃO
-# --------------------------------------------------
-
-if pagina == "Previsão de Risco":
-
-    st.header("Previsão de risco educacional")
-
-    ida = st.slider("IDA - Desempenho Acadêmico", 0.0, 10.0)
-    ieg = st.slider("IEG - Engajamento", 0.0, 10.0)
-    ips = st.slider("IPS - Aspectos Psicossociais", 0.0, 10.0)
-    ipp = st.slider("IPP - Indicador Psicopedagógico", 0.0, 10.0)
-    ipv = st.slider("IPV - Ponto de Virada", 0.0, 10.0)
-    inde = st.slider("INDE - Índice Educacional", 0.0, 10.0)
-
-    dados = pd.DataFrame(
-        [[ida, ieg, ips, ipp, ipv, inde]],
-        columns=[
-            "IDA_2022",
-            "IEG_2022",
-            "IPS_2022",
-            "IPP_2022",
-            "IPV_2022",
-            "INDE_2022",
-        ],
+    fig = px.bar(
+        x=importancias.index,
+        y=importancias.values,
+        title="Indicadores que mais influenciam o risco"
     )
 
-    if st.button("Prever risco"):
-
-        resultado = modelo.predict(dados)
-
-        prob = modelo.predict_proba(dados)
-
-        risco = prob[0][1] * 100
-
-        st.write(f"Probabilidade de risco: {risco:.2f}%")
-
-        st.progress(int(risco))
-
-        if resultado[0] == 1:
-            st.error("Aluno em risco educacional")
-        else:
-            st.success("Aluno com desenvolvimento adequado")
-
-# --------------------------------------------------
-# ANÁLISE DO MODELO
-# --------------------------------------------------
-
-if pagina == "Análise do Modelo":
-
-    st.header("Importância das variáveis")
-
-    importancias = modelo.feature_importances_
-
-    features = [
-        "IDA",
-        "IEG",
-        "IPS",
-        "IPP",
-        "IPV",
-        "INDE",
-    ]
-
-    df_imp = pd.DataFrame(
-        {"Indicador": features, "Importância": importancias}
-    )
-
-    df_imp = df_imp.sort_values("Importância", ascending=True)
-
-    st.bar_chart(df_imp.set_index("Indicador"))
+    st.plotly_chart(fig)
