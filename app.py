@@ -34,7 +34,7 @@ col_ieg = find_col("IEG")
 col_ips = find_col("IPS")
 col_ipv = find_col("IPV")
 
-# DEBUG (pode remover depois)
+# DEBUG (podemos remover depois)
 st.subheader("🔍 Colunas detectadas")
 st.write({
     "IDA": col_ida,
@@ -54,6 +54,18 @@ if None in [col_ida, col_ieg, col_ips, col_ipv]:
 # =========================
 df_modelo = df[[col_ida, col_ieg, col_ips, col_ipv]].copy()
 df_modelo.columns = ["IDA", "IEG", "IPS", "IPV"]
+
+# CONVERTER PRA NUMÉRICO
+for col in df_modelo.columns:
+    df_modelo[col] = (
+        df_modelo[col]
+        .astype(str)
+        .str.replace(",", ".")  # troca vírgula por ponto
+        .str.strip()
+    )
+    df_modelo[col] = pd.to_numeric(df_modelo[col], errors="coerce")
+
+# remover lixo
 df_modelo = df_modelo.dropna()
 
 # NORMALIZAR
