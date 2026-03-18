@@ -113,21 +113,3 @@ if st.button("Prever risco educacional"):
     # gráfico dos inputs
     st.subheader("📊 Indicadores informados")
     st.bar_chart(entrada.T)
-
-# =========================
-# VISUAL FINAL
-# =========================
-
-# Deixamos a visualização geral opcional para não poluir a experiência do usuário e manter o foco na decisão individual.
-if st.checkbox("Ver distribuição de risco na base"):
-  import matplotlib.pyplot as plt
-
-if st.checkbox("Ver distribuição de risco na base"):
-    fig, ax = plt.subplots()
-
-    ax.hist(df_modelo["RISCO"], bins=20)
-    ax.set_title("Distribuição do Risco Educacional")
-    ax.set_xlabel("Nível de risco")
-    ax.set_ylabel("Quantidade de alunos")
-
-    st.pyplot(fig)
