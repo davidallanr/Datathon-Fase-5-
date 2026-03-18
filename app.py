@@ -16,27 +16,29 @@ st.write("Modelo baseado nos indicadores educacionais dos alunos.")
 # =========================
 df = pd.read_excel("dados_limpos base de dados.xlsx")
 
-# limpar nomes das colunas (muito importante)
+# limpar nomes
 df.columns = df.columns.str.strip()
 
-# debug (pode apagar depois)
-# st.write(df.columns)
+# deixar tudo maiúsculo (padronizar)
+df.columns = df.columns.str.upper()
 
 # =========================
-# DEFINIR COLUNAS (AJUSTADO)
+# MAPEAR COLUNAS AUTOMATICAMENTE
 # =========================
-colunas = ["IDA", "IEG", "IPS", "IPP", "IPV", "INDE"]
+colunas_map = {
+    "IDA": [col for col in df.columns if "IDA" in col],
+    "IEG": [col for col in df.columns if "IEG" in col],
+    "IPS": [col for col in df.columns if "IPS" in col],
+    "IPP": [col for col in df.columns if "IPP" in col],
+    "IPV": [col for col in df.columns if "IPV" in col],
+    "INDE": [col for col in df.columns if "INDE" in col],
+}
 
-# garantir que existem
+# pegar a primeira correspondência de cada
+colunas = [colunas_map[k][0] for k in colunas_map if colunas_map[k]]
+
 df = df[colunas]
-
-# =========================
-# CRIAR TARGET (RISCO)
-# =========================
-df["RISCO"] = (df["INDE"] < 5).astype(int)
-
-X = df[colunas]
-y = df["RISCO"]
+df.columns = ["IDA", "IEG", "IPS", "IPP", "IPV", "INDE"]
 
 # =========================
 # TREINAR MODELO
