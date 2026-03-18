@@ -3,7 +3,7 @@ import pandas as pd
 import pickle
 
 # carregar dados
-df = pd.read_csv("DadosNormalizados-Final.csv")
+df = pd.read_excel("dados_limpos base de dados.xlsx")
 
 # carregar modelo
 modelo = pickle.load(open("modelo_risco.pkl", "rb"))
