@@ -1,8 +1,6 @@
 import streamlit as st
 import pandas as pd
 import pickle
-import matplotlib.pyplot as plt
-import seaborn as sns
 
 # carregar dados
 df = pd.read_csv("DadosNormalizados-Final.csv")
