@@ -36,11 +36,7 @@ if pagina == "Dashboard":
 
     st.subheader("Distribuição do desempenho")
 
-    fig, ax = plt.subplots()
-
     df["IDA_2022"].hist(ax=ax)
-
-    st.pyplot(fig)
 
 # --------------------------------------------------
 # PREVISÃO
