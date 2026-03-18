@@ -3,6 +3,9 @@ import pandas as pd
 
 st.set_page_config(page_title="Risco Educacional", layout="wide")
 
+# =========================
+# TÍTULO
+# =========================
 st.title("📊 Previsão de Risco Educacional")
 st.write("Modelo baseado nos indicadores reais da base Passos Mágicos")
 
@@ -16,13 +19,10 @@ except:
     st.stop()
 
 # =========================
-# LIMPAR NOMES DAS COLUNAS
+# LIMPAR COLUNAS
 # =========================
 df.columns = df.columns.str.strip().str.upper()
 
-# =========================
-# ENCONTRAR COLUNAS AUTOMATICAMENTE
-# =========================
 def find_col(keyword):
     for col in df.columns:
         if keyword in col:
@@ -34,18 +34,8 @@ col_ieg = find_col("IEG")
 col_ips = find_col("IPS")
 col_ipv = find_col("IPV")
 
-# DEBUG (podemos remover depois)
-st.subheader("🔍 Colunas detectadas")
-st.write({
-    "IDA": col_ida,
-    "IEG": col_ieg,
-    "IPS": col_ips,
-    "IPV": col_ipv
-})
-
-# validação
 if None in [col_ida, col_ieg, col_ips, col_ipv]:
-    st.error("Erro: não foi possível encontrar todas as colunas necessárias.")
+    st.error("Erro: não foi possível encontrar as colunas necessárias.")
     st.write("Colunas disponíveis:", df.columns)
     st.stop()
 
@@ -55,23 +45,22 @@ if None in [col_ida, col_ieg, col_ips, col_ipv]:
 df_modelo = df[[col_ida, col_ieg, col_ips, col_ipv]].copy()
 df_modelo.columns = ["IDA", "IEG", "IPS", "IPV"]
 
-# CONVERTER PRA NUMÉRICO
+# converter para número
 for col in df_modelo.columns:
     df_modelo[col] = (
         df_modelo[col]
         .astype(str)
-        .str.replace(",", ".")  # troca vírgula por ponto
+        .str.replace(",", ".")
         .str.strip()
     )
     df_modelo[col] = pd.to_numeric(df_modelo[col], errors="coerce")
 
-# remover lixo
 df_modelo = df_modelo.dropna()
 
-# NORMALIZAR
+# normalizar
 df_norm = (df_modelo - df_modelo.min()) / (df_modelo.max() - df_modelo.min())
 
-# CRIAR SCORE DE RISCO
+# score de risco
 df_modelo["RISCO"] = 1 - df_norm.mean(axis=1)
 
 # =========================
@@ -102,20 +91,32 @@ if st.button("Prever risco educacional"):
 
     risco = 1 - entrada_norm.mean(axis=1)[0]
 
+    # =========================
+    # RESULTADO
+    # =========================
     st.subheader("Resultado da previsão")
-    st.write(f"Probabilidade de risco educacional: {risco*100:.2f}%")
 
-    # barra de progresso
+    st.write(f"📉 Probabilidade de risco educacional: **{risco*100:.2f}%**")
+
     st.progress(float(risco))
 
-    if risco > 0.5:
-        st.error("⚠️ Aluno em risco educacional")
+    # interpretação
+    st.subheader("📌 Interpretação")
+
+    if risco > 0.7:
+        st.warning("Risco alto: o aluno pode estar enfrentando dificuldades significativas.")
+    elif risco > 0.4:
+        st.info("Risco moderado: atenção recomendada para acompanhamento.")
     else:
-        st.success("✅ Aluno com desenvolvimento educacional adequado")
+        st.success("Baixo risco: o aluno apresenta bom desenvolvimento.")
+
+    # gráfico dos inputs
+    st.subheader("📊 Indicadores informados")
+    st.bar_chart(entrada.T)
 
 # =========================
-# VISUAL EXTRA (BONUS)
+# VISUAL FINAL
 # =========================
 st.subheader("📊 Distribuição de risco na base")
 
-st.bar_chart(df_modelo["RISCO"])
+st.line_chart(df_modelo["RISCO"])
