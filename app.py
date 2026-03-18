@@ -24,40 +24,42 @@ arquivo = [f for f in arquivos if f.endswith(".xlsx")][0]
 
 df = pd.read_excel(arquivo)
 
-# limpar colunas
-df.columns = df.columns.str.strip()
-
 # =========================
-# SELECIONAR COLUNAS CORRETAS (DO SEU DATASET)
-# =========================
-# =========================
-# MAPEAR COLUNAS AUTOMATICAMENTE
+# AJUSTAR COLUNAS AUTOMATICAMENTE
 # =========================
 df.columns = df.columns.str.strip().str.upper()
 
-def get_col(nome):
+def find_col(keyword):
     for col in df.columns:
-        if nome in col:
+        if keyword in col:
             return col
     return None
 
-colunas_map = {
-    "IDA": get_col("IDA"),
-    "IEG": get_col("IEG"),
-    "IPS": get_col("IPS"),
-    "IPV": get_col("IPV"),
-    "INDE": get_col("INDE"),
-}
+col_ida = find_col("IDA")
+col_ieg = find_col("IEG")
+col_ips = find_col("IPS")
+col_ipv = find_col("IPV")
+col_inde = find_col("INDE")
 
-# validar
-if None in colunas_map.values():
-    st.error("Erro: não encontrei todas as colunas necessárias.")
-    st.write("Colunas disponíveis:")
+# DEBUG (ESSENCIAL AGORA)
+st.write("Colunas detectadas:")
+st.write({
+    "IDA": col_ida,
+    "IEG": col_ieg,
+    "IPS": col_ips,
+    "IPV": col_ipv,
+    "INDE": col_inde
+})
+
+# validação
+if None in [col_ida, col_ieg, col_ips, col_ipv, col_inde]:
+    st.error("Erro: alguma coluna não foi encontrada.")
+    st.write("Colunas disponíveis no dataset:")
     st.write(df.columns)
     st.stop()
 
-# criar dataset padronizado
-df_modelo = df[list(colunas_map.values())].copy()
+# montar dataset
+df_modelo = df[[col_ida, col_ieg, col_ips, col_ipv, col_inde]].copy()
 df_modelo.columns = ["IDA", "IEG", "IPS", "IPV", "INDE"]
 
 df_modelo = df_modelo.dropna()
