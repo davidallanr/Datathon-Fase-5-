@@ -14,7 +14,15 @@ st.write("Modelo baseado nos indicadores reais da base Passos Mágicos")
 # =========================
 # CARREGAR DADOS
 # =========================
-df = pd.read_excel("dados_limpos base de dados.xlsx")
+import os
+
+arquivos = os.listdir()
+
+st.write("Arquivos disponíveis:", arquivos)  # debug
+
+arquivo = [f for f in arquivos if f.endswith(".xlsx")][0]
+
+df = pd.read_excel(arquivo)
 
 # limpar colunas
 df.columns = df.columns.str.strip()
