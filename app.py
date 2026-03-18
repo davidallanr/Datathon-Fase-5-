@@ -30,9 +30,37 @@ df.columns = df.columns.str.strip()
 # =========================
 # SELECIONAR COLUNAS CORRETAS (DO SEU DATASET)
 # =========================
-colunas = ["IDA", "IEG", "IPS", "IPV", "INDE"]
+# =========================
+# MAPEAR COLUNAS AUTOMATICAMENTE
+# =========================
+df.columns = df.columns.str.strip().str.upper()
 
-df_modelo = df[colunas].dropna()
+def get_col(nome):
+    for col in df.columns:
+        if nome in col:
+            return col
+    return None
+
+colunas_map = {
+    "IDA": get_col("IDA"),
+    "IEG": get_col("IEG"),
+    "IPS": get_col("IPS"),
+    "IPV": get_col("IPV"),
+    "INDE": get_col("INDE"),
+}
+
+# validar
+if None in colunas_map.values():
+    st.error("Erro: não encontrei todas as colunas necessárias.")
+    st.write("Colunas disponíveis:")
+    st.write(df.columns)
+    st.stop()
+
+# criar dataset padronizado
+df_modelo = df[list(colunas_map.values())].copy()
+df_modelo.columns = ["IDA", "IEG", "IPS", "IPV", "INDE"]
+
+df_modelo = df_modelo.dropna()
 
 # =========================
 # CRIAR TARGET
