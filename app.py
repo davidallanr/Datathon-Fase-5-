@@ -117,8 +117,6 @@ if st.button("Prever risco educacional"):
 # =========================
 # VISUAL FINAL
 # =========================
-st.subheader("📊 Distribuição de risco na base")
-st.line_chart(df_modelo["RISCO"])
 
 # Deixamos a visualização geral opcional para não poluir a experiência do usuário e manter o foco na decisão individual.
 if st.checkbox("Ver distribuição de risco na base"):
